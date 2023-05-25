@@ -34,7 +34,6 @@ import java.util.List;
 import static io.takari.maven.testing.AbstractTestResources.assertFileContents;
 import static io.takari.maven.testing.TestMavenRuntime.newParameter;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,6 +51,22 @@ class TestRenderMojo {
     private static final String OUTPUT_FILENAME = "target/tests/TestRenderMojo/Generated.yaml";
     private static final String TEST_PROPERTIES = "test.properties";
 
+
+    private Xpp3Dom getProperties(String... kvList) {
+        Xpp3Dom result = new Xpp3Dom("properties");
+        int i = 0;
+        while (kvList.length > i+1) {
+            String key = kvList[i];
+            String value = kvList[i+1];
+            Xpp3Dom setting = new Xpp3Dom(key);
+            setting.setValue(value);
+            result.addChild(setting);
+            i+=2;
+        }
+        return result;
+    }
+
+
     @Test
     void testNormal() throws Exception {
         File basedir = expectPass(
@@ -65,6 +80,26 @@ class TestRenderMojo {
                 "  overridden: 'properties file'\n" +
                 "  something.name: 'Noot'\n" +
                 "  test: 'aap'\n",
+            basedir,
+            OUTPUT_FILENAME
+        );
+    }
+
+    @Test
+    void testNormalPropertyViaPomXml() throws Exception {
+        File basedir = expectPass(
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            OUTPUT_FILENAME,
+            getProperties("overridden","pom.xml", "mies","wIm")
+        );
+
+        assertFileContents(
+            "properties:\n" +
+            "  mies: 'wIm'\n" +
+            "  overridden: 'pom.xml'\n" +
+            "  something.name: 'Noot'\n" +
+            "  test: 'aap'\n",
             basedir,
             OUTPUT_FILENAME
         );
@@ -386,11 +421,23 @@ class TestRenderMojo {
             "Missing expected message: \""+expectedMessage+"\"; Actual message: \""+mojoExecutionException.getMessage()+"\".");
     }
 
-
     private File expectPass(
         String templateFile,
         String propertiesFile,
         String outputFile
+    ) {
+        return expectPass(
+            templateFile,
+            propertiesFile,
+            outputFile,
+            null);
+    }
+
+    private File expectPass(
+        String templateFile,
+        String propertiesFile,
+        String outputFile,
+        Xpp3Dom properties
     ) {
         final File basedir = getBasedir();
         List<Xpp3Dom> parameters = new ArrayList<>();
@@ -400,6 +447,9 @@ class TestRenderMojo {
         }
         if (propertiesFile != null) {
             parameters.add(newParameter("propertiesFile", propertiesFile));
+        }
+        if (properties != null) {
+            parameters.add(properties);
         }
         if (outputFile != null) {
             parameters.add(newParameter("outputFile", outputFile));
