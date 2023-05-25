@@ -109,8 +109,8 @@ public class RenderMojo
                         properties.put(propertyKey, entry.getValue().toString());
                     }
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            } catch (IOException ioe) {
+                throw new MojoExecutionException("Unable to read the provided properties file " + propertiesFile, ioe);
             }
         }
 
@@ -124,15 +124,11 @@ public class RenderMojo
         // Render the content
         String renderResult = template.render();
 
-        if (renderResult == null) {
-            throw new MojoExecutionException("The render output was null");
-        }
-
         // Write the file
         try (FileWriter codeFileWriter = new FileWriter(outputFile)) {
             codeFileWriter.write(renderResult);
         } catch (IOException e) {
-            throw new MojoExecutionException("Fatal error writing code file (" + outputFile + "):" + e.getMessage());
+            throw new MojoExecutionException("Unable to write output file (" + outputFile + "):" + e.getMessage(), e);
         }
     }
 }

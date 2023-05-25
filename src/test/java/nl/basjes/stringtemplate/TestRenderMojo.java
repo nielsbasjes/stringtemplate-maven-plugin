@@ -25,6 +25,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +35,7 @@ import static io.takari.maven.testing.AbstractTestResources.assertFileContents;
 import static io.takari.maven.testing.TestMavenRuntime.newParameter;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -54,16 +58,127 @@ class TestRenderMojo {
             TEMPLATE_FILENAME,
             TEST_PROPERTIES,
             OUTPUT_FILENAME
-            );
+        );
 
         assertFileContents(
             "properties:\n" +
-            "  overridden: 'properties file'\n" +
-            "  something.name: 'Noot'\n" +
-            "  test: 'aap'\n",
+                "  overridden: 'properties file'\n" +
+                "  something.name: 'Noot'\n" +
+                "  test: 'aap'\n",
             basedir,
-            OUTPUT_FILENAME);
+            OUTPUT_FILENAME
+        );
     }
+
+    @Test
+    void testNormalOutputDirectoryAlreadyExists() throws Exception {
+        File basedir = expectPass(
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            "Generated.yaml"
+        );
+
+        assertFileContents(
+            "properties:\n" +
+                "  overridden: 'properties file'\n" +
+                "  something.name: 'Noot'\n" +
+                "  test: 'aap'\n",
+            basedir,
+            "Generated.yaml"
+        );
+    }
+
+    @Test
+    void testTemplateFileAccessDenied() throws Exception {
+        File basedir = getBasedir();
+        assertNotNull(basedir);
+
+        Files.setPosixFilePermissions(
+            FileSystems.getDefault().getPath(
+                basedir.toPath().toAbsolutePath().toString(),
+                TEMPLATE_FILENAME),
+            PosixFilePermissions.fromString("---------"));
+
+        expectFailWithMessage(
+            basedir,
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            OUTPUT_FILENAME,
+            "Unable to find group \"Render\" in template file"
+        );
+    }
+
+
+    @Test
+    void testPropertiesFileAccessDenied() throws Exception {
+        File basedir = getBasedir();
+        assertNotNull(basedir);
+
+        Files.setPosixFilePermissions(
+            FileSystems.getDefault().getPath(
+                basedir.toPath().toAbsolutePath().toString(),
+                TEST_PROPERTIES),
+            PosixFilePermissions.fromString("---------"));
+
+        expectFailWithMessage(
+            basedir,
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            OUTPUT_FILENAME,
+            "Unable to read the provided properties file"
+        );
+    }
+
+    @Test
+    void testOutputDirAccessDenied() throws Exception {
+        File basedir = getBasedir();
+        assertNotNull(basedir);
+
+        File outputDir = FileSystems.getDefault().getPath(
+            basedir.toPath().toAbsolutePath().toString(),
+            OUTPUT_FILENAME).getParent().toAbsolutePath().toFile();
+
+        assertTrue(outputDir.mkdirs(), "Unable to create outputDir");
+
+        Files.
+            setPosixFilePermissions(
+                outputDir.toPath(),
+                PosixFilePermissions.fromString("---------"));
+
+        expectFailWithMessage(
+            basedir,
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            OUTPUT_FILENAME,
+            "Unable to write output file"
+        );
+    }
+
+    @Test
+    void testOutputDirCreationDenied() throws Exception {
+        File basedir = getBasedir();
+        assertNotNull(basedir);
+
+        File outputDir = FileSystems.getDefault().getPath(
+            basedir.toPath().toAbsolutePath().toString(),
+            OUTPUT_FILENAME).getParent().getParent().toAbsolutePath().toFile();
+
+        assertTrue(outputDir.mkdirs(), "Unable to create outputDir");
+
+        Files.
+            setPosixFilePermissions(
+                outputDir.toPath(),
+                PosixFilePermissions.fromString("---------"));
+
+        expectFailWithMessage(
+            basedir,
+            TEMPLATE_FILENAME,
+            TEST_PROPERTIES,
+            OUTPUT_FILENAME,
+            "Needed output directory was not present and could not be created."
+        );
+    }
+
 
     @Test
     void testTemplateFileMissing() {
@@ -223,19 +338,37 @@ class TestRenderMojo {
             OUTPUT_FILENAME);
     }
 
-
-    private void expectFailWithMessage(
-        String templateFile,
-        String propertiesFile,
-        String outputFile,
-        String expectedMessage
-    ) {
-        File basedir = null;
+    private File getBasedir() {
         try {
-            basedir = resources.getBasedir("base");
-        } catch (Exception e) {
+            return resources.getBasedir("base");
+        } catch(Exception e) {
             fail("This should not happen");
         }
+        return null;
+    }
+
+    private void expectFailWithMessage(
+        final String templateFile,
+        final String propertiesFile,
+        final String outputFile,
+        final String expectedMessage
+    ) {
+        expectFailWithMessage(
+            getBasedir(),
+            templateFile,
+            propertiesFile,
+            outputFile,
+            expectedMessage
+        );
+    }
+
+    private void expectFailWithMessage(
+        final File baseDir,
+        final String templateFile,
+        final String propertiesFile,
+        final String outputFile,
+        final String expectedMessage
+    ) {
         List<Xpp3Dom> parameters = new ArrayList<>();
 
         if (templateFile != null) {
@@ -247,9 +380,8 @@ class TestRenderMojo {
         if (outputFile != null) {
             parameters.add(newParameter("outputFile", outputFile));
         }
-        File finalBasedir = basedir;
         MojoExecutionException mojoExecutionException = assertThrows(MojoExecutionException.class,
-            () -> maven.executeMojo(finalBasedir, "render", parameters.toArray(new Xpp3Dom[0])));
+            () -> maven.executeMojo(baseDir, "render", parameters.toArray(new Xpp3Dom[0])));
         assertTrue(mojoExecutionException.getMessage().contains(expectedMessage),
             "Missing expected message: \""+expectedMessage+"\"; Actual message: \""+mojoExecutionException.getMessage()+"\".");
     }
@@ -260,12 +392,7 @@ class TestRenderMojo {
         String propertiesFile,
         String outputFile
     ) {
-        File basedir = null;
-        try {
-            basedir = resources.getBasedir("base");
-        } catch (Exception e) {
-            fail("This should not happen");
-        }
+        final File basedir = getBasedir();
         List<Xpp3Dom> parameters = new ArrayList<>();
 
         if (templateFile != null) {
@@ -277,9 +404,8 @@ class TestRenderMojo {
         if (outputFile != null) {
             parameters.add(newParameter("outputFile", outputFile));
         }
-        File finalBasedir = basedir;
         assertDoesNotThrow(
-            () -> maven.executeMojo(finalBasedir, "render", parameters.toArray(new Xpp3Dom[0])));
+            () -> maven.executeMojo(basedir, "render", parameters.toArray(new Xpp3Dom[0])));
 
         return basedir;
     }
