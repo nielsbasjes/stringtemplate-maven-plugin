@@ -1,3 +1,11 @@
+[![Github actions Build status](https://img.shields.io/github/actions/workflow/status/nielsbasjes/stringtemplate-maven-plugin/build.yml?branch=main)](https://github.com/nielsbasjes/stringtemplate-maven-plugin/actions)
+[![Coverage Status](https://img.shields.io/codecov/c/github/nielsbasjes/stringtemplate-maven-plugin)](https://app.codecov.io/gh/nielsbasjes/stringtemplate-maven-plugin)
+[![License](https://img.shields.io/:license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+[![Maven Central](https://img.shields.io/maven-central/v/nl.basjes.stringtemplate/stringtemplate-maven-plugin.svg)](https://central.sonatype.com/namespace/nl.basjes.stringtemplate)
+[![GitHub stars](https://img.shields.io/github/stars/nielsbasjes/stringtemplate-maven-plugin?label=GitHub%20stars)](https://github.com/nielsbasjes/stringtemplate-maven-plugin/stargazers)
+[![If this project has business value for you then don't hesitate to support me with a small donation.](https://img.shields.io/badge/Donations-via%20Paypal-blue.svg)](https://www.paypal.me/nielsbasjes)
+
+[//]: # ([![Reproducible Builds]&#40;https://img.shields.io/badge/Reproducible_Builds-ok-success?labelColor=1e5b96&#41;]&#40;https://github.com/jvm-repo-rebuild/reproducible-central#nl.basjes.stringtemplate:stringtemplate-maven-plugin&#41;)
 # What is this?
 A maven plugin that uses the [StringTemplate 4](https://www.stringtemplate.org/) templating engine to generate a file.
 
