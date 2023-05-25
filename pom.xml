@@ -26,6 +26,9 @@
   <name>String Template 4 Maven plugin</name>
 
   <properties>
+    <!-- Needed to make the build reproducible https://reproducible-builds.org/ -->
+    <project.build.outputTimestamp>2023-05-25T00:00:00Z</project.build.outputTimestamp>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
 
