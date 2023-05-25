@@ -57,7 +57,7 @@
     <cyclonedx-maven-plugin.version>2.7.9</cyclonedx-maven-plugin.version>
 
     <maven-plugin-api.version>3.9.2</maven-plugin-api.version>
-    <maven-plugin-plugin.version>3.8.2</maven-plugin-plugin.version>
+    <maven-plugin-plugin.version>3.9.0</maven-plugin-plugin.version>
 
     <junit5.version>5.9.3</junit5.version>
 
