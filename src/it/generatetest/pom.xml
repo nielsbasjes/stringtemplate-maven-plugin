@@ -1,0 +1,99 @@
+<!--
+ ~ StringTemplate Maven Plugin
+ ~ Copyright (C) 2023 Niels Basjes
+ ~
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~  https://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an AS IS BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>nl.basjes.sunspec</groupId>
+  <artifactId>generatetest</artifactId>
+  <version>0.1</version>
+  <packaging>jar</packaging>
+
+  <name>generatetest</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.release>11</maven.compiler.release>
+
+    <junit5.version>@junit5.version@</junit5.version>
+    <stringtemplate-maven-plugin.version>@project.version@</stringtemplate-maven-plugin.version>
+  </properties>
+
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit5.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>nl.basjes.stringtemplate</groupId>
+        <artifactId>stringtemplate-maven-plugin</artifactId>
+        <version>${stringtemplate-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>generate it</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>render</goal>
+            </goals>
+            <configuration>
+              <templateFile>${project.basedir}/GenerateTest.stg</templateFile>
+              <outputFile>${project.basedir}/target/Generated.yaml</outputFile>
+              <properties>
+                <aap>AaP</aap>
+                <noot>NooT</noot>
+                <mies>MieS</mies>
+                <overridden>pom.xml</overridden>
+                <project.version>${project.version}</project.version>
+              </properties>
+              <propertiesFile>extra.properties</propertiesFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
