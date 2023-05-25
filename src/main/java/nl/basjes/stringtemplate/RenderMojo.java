@@ -30,12 +30,13 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
 @Mojo(name = "render", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@SuppressWarnings("unused")
 public class RenderMojo
         extends AbstractMojo {
 
@@ -43,7 +44,7 @@ public class RenderMojo
     private File templateFile;
 
     @Parameter(property = "properties")
-    private Map<String, String> properties = new HashMap<>();
+    private Map<String, String> properties;
 
     @Parameter(property = "propertiesFile")
     private File propertiesFile;
@@ -98,7 +99,7 @@ public class RenderMojo
                 throw new MojoExecutionException("Specified propertiesFile is not a file");
             }
 
-            try (InputStream input = new FileInputStream(propertiesFile)) {
+            try (InputStream input = Files.newInputStream(propertiesFile.toPath())) {
                 Properties prop = new Properties();
                 // load a properties file
                 prop.load(input);
