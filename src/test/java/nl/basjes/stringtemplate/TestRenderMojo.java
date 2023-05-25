@@ -51,21 +51,17 @@ class TestRenderMojo {
     private static final String OUTPUT_FILENAME = "target/tests/TestRenderMojo/Generated.yaml";
     private static final String TEST_PROPERTIES = "test.properties";
 
-
-    private Xpp3Dom getProperties(String... kvList) {
-        Xpp3Dom result = new Xpp3Dom("properties");
-        int i = 0;
-        while (kvList.length > i+1) {
-            String key = kvList[i];
-            String value = kvList[i+1];
-            Xpp3Dom setting = new Xpp3Dom(key);
-            setting.setValue(value);
-            result.addChild(setting);
-            i+=2;
-        }
-        return result;
+    private static final Xpp3Dom POM_PROPERTIES = new Xpp3Dom("properties");
+    static {
+        addPomProperty("overridden", "pom.xml");
+        addPomProperty("mies","wIm");
     }
 
+    private static void addPomProperty(String key, String value) {
+        Xpp3Dom setting = new Xpp3Dom(key);
+        setting.setValue(value);
+        POM_PROPERTIES.addChild(setting);
+    }
 
     @Test
     void testNormal() throws Exception {
@@ -91,7 +87,7 @@ class TestRenderMojo {
             TEMPLATE_FILENAME,
             TEST_PROPERTIES,
             OUTPUT_FILENAME,
-            getProperties("overridden","pom.xml", "mies","wIm")
+            POM_PROPERTIES
         );
 
         assertFileContents(
