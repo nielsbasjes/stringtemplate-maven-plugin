@@ -59,7 +59,7 @@
     <maven-plugin-api.version>3.9.6</maven-plugin-api.version>
     <maven-plugin-plugin.version>3.11.0</maven-plugin-plugin.version>
 
-    <junit5.version>5.10.1</junit5.version>
+    <junit5.version>5.10.2</junit5.version>
 
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
     <!-- See http://www.eclemma.org/jacoco/trunk/doc/prepare-agent-mojo.html-->
